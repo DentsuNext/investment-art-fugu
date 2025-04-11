@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ubs-investment-art</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: Helvetica, Arial, sans-serif;
+            overflow: hidden; /* disable scrolling / rubberband effect on mobile */
+            height:100vh;
+            display: flex;
+        }
+
+        canvas {
+            /* position: relative; */
+            outline:0;
+            margin: auto;
+            max-width: 640px;
+            height:100%;
+        }
+
+        * {
+            /* disable on touch highlights of html elements, especially on mobile! */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+    </style>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta itemprop="name" content="ubs-investment-art">
+    <meta itemprop="description" content="made with cables">
+    <meta itemprop="image" content="screenshot.png">
+    <meta name="description" content="made with cables"/>
+
+</head>
+<body>
+    <canvas id="glcanvas" tabindex="1"></canvas>
+
+    
+    <script type="text/javascript" src="js/patch.js" async></script>
+    
+
+    <script type="text/javascript">
+
+        function showError(errId, errMsg)
+        {
+            // handle critical errors here if needed
+        }
+
+        function patchInitialized(patch)
+        {
+            // You can now access the patch object (patch), register variable watchers and so on
+
+            // Set ImageSet Root URL
+            // const myVar = patch.getVar("ImageSetBaseURL");
+
+            // if(myVar) {
+            //     // get the current value
+            //     let currentValue = myVar.getValue();
+
+            //     console.log("old url:" + currentValue);
+
+                // // change the value
+                // myVar.setValue("imageset");
+                // currentValue = myVar.getValue();
+
+                // console.log("new url:" + currentValue);
+            // }
+        }
+
+        function patchFinishedLoading(patch)
+        {
+            // The patch is ready now, all assets have been loaded
+        }
+
+        document.addEventListener("CABLES.jsLoaded", function (event)
+        {
+            CABLES.patch = new CABLES.Patch({
+                patch: CABLES.exportedPatch,
+                "prefixAssetPath": "",
+                "assetPath": "assets/",
+                "jsPath": "js/",
+                "glCanvasId": "glcanvas",
+                "glCanvasResizeToWindow": false,
+                "onError": showError,
+                "onPatchLoaded": patchInitialized,
+                "onFinishedLoading": patchFinishedLoading,
+                "canvas": {"alpha":true, "premultipliedAlpha":true }, // make canvas transparent
+
+                // https://cables.gl/docs/4_export_embed/dev_embed_vars/dev_embed_vars
+                // you can overwrite the initial value of a variable in the patch config:
+                variables:
+                {
+                    "ImageSetBaseURL":"imageset",
+                    "IsInDebugMode":1,
+                    "PointCount":52
+                }
+            });
+
+            CABLES.patch.config.OnLoadingFinished = function(parameters) {
+                console.log('OnLoadingFinished');
+            };
+        });
+
+        // disable rubberband effect on mobile devices
+        document.getElementById('glcanvas').addEventListener('touchmove', (e)=>{ e.preventDefault(); }, false);
+    </script>
+     <script type="text/javascript">
+        function ShowAnimation()
+        {
+            // get data through api
+            var api_data = [0.6384532879572101,0.6722419265351831,0.7150069025046927,0.7950014287474461,0.7947472945790489,0.7401317673768544,0.722553607379248,0.710701473808543,0.7486681462855103,0.8164330856107183,0.8681893211318872,0.8817548877567277,0.9349614485890521,0.964264007668949,0.9190144637729916,0.8897349483646959,0.8271815423739173,0.7643971036758967,0.7279158765564631,0.6979542578586894,0.7233332713748055,0.7747760093414968,0.7853260643053066,0.8180706957387998,0.8012979895544359,0.7803295857794137,0.7741721301053544,0.8194357198485236,0.8123604227389977,0.7609153840702542,0.7184480029064213,0.6879150533424416,0.7401742771372042,0.7759490865669978,0.7706585181576572,0.7193308153776672,0.6562197847270008,0.6374215237935422,0.5711044458527876,0.5336893307666897,0.5230385777263182,0.5697626660827446,0.5886864215912023,0.6511636997489193,0.6707873544093793,0.6600810577997347,0.6374397917523359,0.6120722429801783,0.5389905525865505,0.5009884389941488,0.45042327309431557,0.45090859577782777,0.5918579389934034,0.5629251234054288,0.497865775042301,0.5001521970745436,0.41577803883284,0.37752034651258365,0.40986274240789383,0.41811184467158874,0.4726907428326413,0.5414148488621398,0.5521786297677965,0.623958433820216,0.6544862013609147,0.6848326296745111,0.7293415403705625,0.6702789533707362,0.6582040232212212,0.6022059353973668,0.5715271380167248,0.48669858342531136,0.4531680642775446,0.5089018854148528,0.5441697000018825,0.6251733733314658,0.6617058227369321,0.6940778733701741,0.7305809435481159,0.7872230015697701,0.8050480002628514,0.8418668435205406,0.8791737552246597,0.9249181478204946,0.9845238855330636,0.9480950577209271,0.9291779962699995,0.8926954211272546,0.8517785219149219,0.8415764467823856,0.8025490472194202,0.7491707500795712,0.7057606746875817,0.6864074510438387,0.6387986170078879,0.6218962538596626,0.6753289643510407,0.683565638606696,0.7262985457541202,0.7687455425527066,0.8084329136479802,0.9001022525759521,0.896870036591346,0.9314359444180033,0.22067398735878385,0.24421171078981718,0.32285387561587225,0.377905455539321,0.41692685632079884,0.4592217941418426,0.47988594762676595,0.5623327018024877,0.5847484810950987,0.5807032999409543,0.5599501894897138,0.5070985201347548,0.4890037584718692,0.41918153007628906,0.39732864461851597,0.3574562565028583,0.2699494449094151,0.27579268577915844,0.26218049477765915,0.3181582712139383,0.38674888351763204,0.42448353727753874,0.41053788276720615,0.33720608897402204,0.3086945978816694,0.28679893387347777,0.20892099170190098,0.17899732024001325,0.1691904837122556,0.18013218904548634,0.18916595669284858,0.2304593378447073,0.30870087216678094,0.31178989639951116,0.402564400280286,0.4196688859999991,0.4627838162544641,0.4592056626484451,0.4471180056212264,0.4379109744442666,0.4744614655142857,0.43264060983080616,0.4127432245511649,0.42448751683518143,0.46744307019141196,0.5457799667350131,0.5606282911952337,0.6268052869160807,0.6500317671217357,0.7150099458820296,0.7638030197741442,0.7985705733091052];
+            
+            // register callback function when loading finished
+            const IsLoading = CABLES.patch.getVar("IsLoading");
+            if(IsLoading) {
+                IsLoading.on("change", (function(v) {
+                    console.log("IsLoading", v);
+                }));
+            }
+
+            console.log("Length", api_data.length);
+
+            // pass data to cables to trigger the animation
+            CABLES.patch.setVariable("APIData_In", api_data);
+            CABLES.patch.config.StartPlayingAnimation();            
+        }
+        
+        
+     </script>
+     <button onclick="ShowAnimation()" style="position: absolute;">ShowAniamtion</button>
+</body>
+</html>

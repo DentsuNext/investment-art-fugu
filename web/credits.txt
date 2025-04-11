@@ -1,0 +1,11 @@
+OP AUTHORS:
+
+- ops by cables user pandur (https://cables.gl/user/pandur)
+- ops by cables user andro (https://cables.gl/user/andro)
+- ops by cables user stephan (https://cables.gl/user/stephan)
+- ops by cables user simod (https://cables.gl/user/simod)
+- ops by cables user agalloch21 (https://cables.gl/user/agalloch21)
+- ops by cables user tim (https://cables.gl/user/tim)
+- Photoshop math GLSL shaders by Romain Dura (https://mouaif.wordpress.com/2009/01/05/photoshop-math-with-glsl-shaders/)
+
+cables is build on open source software and community contributions, check https://cables.gl/credits
