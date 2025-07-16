@@ -22,7 +22,27 @@ config = {
     "img_root": img_root,
     "categories": categories,
     "height_types": height_types,
+    "image_paths": image_paths,
+
+    # 高度分割: 小于0.2的为h0, 小于0.4大于等于0.2的为h1, 依次类推
     "height_boundaries": [0.2, 0.4, 0.6, 0.8],
-    "buildings_per_layer": 13,
-    "image_paths": image_paths
+    # 每个图层包含的建筑数量
+    "buildings_per_layer": 13,    
+    # 新增图片生成相关参数
+    "resolution": (956, 671),
+    # 线条宽度
+    "line_width": 2,
+    # 建筑可以叠加的颜色
+    "overlay_colors": {
+        "gold": (255, 215, 0, 80),    # 金色
+        "silver": (192, 192, 192, 80),  # 银色
+        "copper": (205, 127, 50, 80)    # 铜色
+    },
+    # 每层建筑后面, 折线下方的背景颜色
+    "layer_colors": [
+        (206, 114, 114, 255),
+        (252, 200, 85, 255),
+        (206, 155, 82, 255),
+        (168, 144, 110, 255)       
+    ]
 }
