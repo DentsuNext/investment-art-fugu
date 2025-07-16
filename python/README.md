@@ -1,57 +1,58 @@
-# Python 图片生成工程
+# Investment Art Fugu Python Project
 
-本工程用于生成多层建筑、折线、渐变背景叠加的图片。
+## Project Structure
 
-## 目录结构
+```
+python/
+├── building_generator/           # Main module for image generation
+│   ├── __init__.py
+│   ├── api.py                    # Exposes the main function: generate_image(user_data, ...)
+│   ├── core.py                   # Core logic for image selection and composition
+│   ├── config.py                 # Configuration management
+│   └── utils.py                  # Shared utilities
+│
+├── image_tools/                  # Tools for image preparation and management
+│   ├── __init__.py
+│   ├── cli.py                    # Command-line interface for all tools
+│   ├── rename.py                 # Renaming images
+│   ├── crop.py                   # Cropping images
+│   ├── count.py                  # Counting images and writing to JSON
+│   └── split.py                  # Splitting images by ratio
+│
+├── assets/                       # Static resources
+├── imgset/                       # Image library
+├── tests/                        # Unit and integration tests
+│   └── test_building_generator.py
+├── README.md
+├── requirements.txt
+└── todolist.md
+```
 
-- generate_image.py         主程序
-- requirements.txt         Python 依赖
-- Dockerfile               Docker 构建文件
-- assets/                  素材图片（bg.png, bg-gradient.png, line-gradient.jpg）
-- imgset/                  建筑图片素材
+## Usage
+
+### Main Use Case: Generate Image
+
+```python
+from building_generator.api import generate_image
+
+# user_data = ... (your data)
+img = generate_image(user_data, config=...)
+img.save('output.png')
+```
+
+### Preparation Tools
+
+- Interactive:  
+  `python -m image_tools.cli`
+- Command-line:  
+  `python -m image_tools.cli --rename imgset/asia/h0`
+  `python -m image_tools.cli --crop imgset/asia/h0`
+  `python -m image_tools.cli --count imgset/asia/h0 output.json`
+
+## Development
+- All core logic and configuration should be placed in `building_generator/`.
+- All image management and preparation tools should be placed in `image_tools/`.
+- Add tests to `tests/`.
 
 ---
-
-## 运行方式一：直接用 Python 运行
-
-1. 安装 Python 3.10+（推荐 3.10/3.11）
-2. 安装依赖：
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. 运行生成图片：
-   ```bash
-   python generate_image.py
-   ```
-4. 生成的图片为 `output.png`
-
----
-
-## 运行方式二：用 Docker 运行（推荐跨平台复现）
-
-1. 安装 Docker
-2. 构建镜像：
-   ```bash
-   docker build -t python-imggen .
-   ```
-3. 运行生成图片（挂载当前目录，输出文件可直接访问）：
-   - Linux/Mac:
-     ```bash
-     docker run -v $(pwd):/app python-imggen
-     ```
-   - Windows PowerShell:
-     ```powershell
-     docker run -v ${PWD}:/app python-imggen
-     ```
-   - Windows CMD:
-     ```cmd
-     docker run -v %cd%:/app python-imggen
-     ```
-4. 生成的图片为 `output.png`
-
----
-
-## 说明
-- 所有素材图片需放在 `assets/` 和 `imgset/` 文件夹下。
-- 运行后会在当前目录生成 `output.png`。
-- 可根据 `generate_image.py` 修改参数自定义效果。 
+For more details, see `todolist.md`. 

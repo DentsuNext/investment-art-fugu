@@ -10,6 +10,7 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from PIL import Image
+from .core import generate_image_core
 
 # =====================
 # 配置管理
@@ -97,27 +98,18 @@ class ImageComposer:
 # =====================
 # 对外API接口
 # =====================
-def generate_building_image(
-    user_data: List[List[float]],
-    region: str,
-    color_indices: List[int],
-    config_path: Optional[str] = None
-) -> Image.Image:
+def generate_image(user_data, config=None):
     """
-    主API: 生成建筑拼接图片
-    user_data: 每层的用户数据点数组
-    region: 地区分类
-    color_indices: 每层建筑叠加的颜色索引
-    config_path: 可选配置文件路径
-    返回: PIL.Image
+    Main API: Generate building image from user data.
+    Args:
+        user_data: User data for image generation.
+        config: Optional config object or path.
+    Returns:
+        PIL.Image object
     """
-    config = Config(config_path)
-    counter = ImageCounter(config)
-    selector = BuildingSelector(config, counter)
-    composer = ImageComposer(config)
-    selected_images = selector.select_images(user_data, region)
-    img = composer.compose(selected_images, user_data, color_indices)
-    return img
+    # if config is None:
+    #     config = load_config()
+    return generate_image_core(user_data, config)
 
 # =====================
 # 工具函数（可选）
@@ -132,6 +124,6 @@ if __name__ == "__main__":
     # 示例: 生成一张图片并保存
     dummy_user_data = [[0.1, 0.5, 0.9] for _ in range(5)]  # 5层，每层3个点
     dummy_color_indices = [0, 1, 2, 0, 1]
-    img = generate_building_image(dummy_user_data, "asia", dummy_color_indices)
+    img = generate_image(dummy_user_data)
     img.save("output_demo.png")
     print("output_demo.png saved.") 
