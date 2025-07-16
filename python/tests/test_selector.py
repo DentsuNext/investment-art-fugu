@@ -9,11 +9,33 @@ def test_calculate_building_image_paths():
     region = "china"
     result = calculate_building_image_paths(user_data, num_layers, region)
     print("Result shape:", [[len(layer) for layer in result]])
+    # Print each image path selected, grouped by layer
+    for layer_idx, layer in enumerate(result):
+        if layer_idx == 0:
+            print(f"Foreground (3 images):")
+        else:
+            print(f"Layer {layer_idx}:")
+        for img_path in layer:
+            print(f"  {img_path}")
     # Check result shape
     assert len(result) == 5  # 1 foreground + 4 layers
     assert len(result[0]) == 3  # Foreground always 3 images
     for i, layer in enumerate(result[1:], 1):
         assert len(layer) == global_config_mod.config["buildings_per_layer"]
+    # Check for duplicate image selection across all layers
+    all_selected = [img_path for layer in result for img_path in layer]
+    seen = set()
+    duplicates = set()
+    for img_path in all_selected:
+        if img_path in seen:
+            duplicates.add(img_path)
+        else:
+            seen.add(img_path)
+    if duplicates:
+        print("WARNING: Duplicate image(s) selected across layers:")
+        for dup in duplicates:
+            print(f"  {dup}")
+    assert not duplicates, "Some images were selected more than once across all layers!"
 
 if __name__ == "__main__":
     test_calculate_building_image_paths()

@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+# Ignore Mac OS preview files
+._* 

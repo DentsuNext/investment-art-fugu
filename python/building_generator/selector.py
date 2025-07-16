@@ -3,28 +3,28 @@ import random
 from typing import List
 from .config import config
 
-def _pick_images(region, htype, count, chosen, img_count, img_root, generic='generic'):
+def _pick_images(region, htype, count, chosen, img_root, generic='generic'):
     """
     Pick 'count' images from region/htype, fallback to generic/htype, avoiding duplicates in 'chosen'.
     Returns a list of image paths.
     """
     paths = []
     # Try region first
-    region_count = int(img_count.get(region, {}).get(htype, 0))
-    candidates = [i for i in range(region_count) if i not in chosen]
+    region_files = config['image_paths'][region][htype]
+    candidates = [i for i in range(len(region_files)) if i not in chosen]
     while len(paths) < count and candidates:
         idx = random.choice(candidates)
         chosen.add(idx)
-        paths.append(os.path.join(img_root, region, htype, f'{idx}.png'))
+        paths.append(region_files[idx])
         candidates.remove(idx)
     # Fallback to generic
     if len(paths) < count:
-        generic_count = int(img_count.get(generic, {}).get(htype, 0))
-        candidates = [i for i in range(generic_count) if i not in chosen]
+        generic_files = config['image_paths'][generic][htype]
+        candidates = [i for i in range(len(generic_files)) if i not in chosen]
         while len(paths) < count and candidates:
             idx = random.choice(candidates)
             chosen.add(idx)
-            paths.append(os.path.join(img_root, generic, htype, f'{idx}.png'))
+            paths.append(generic_files[idx])
             candidates.remove(idx)
     if len(paths) < count:
         raise RuntimeError(f'Not enough images for {region}/{htype} and fallback generic/{htype}!')
@@ -42,22 +42,22 @@ def calculate_building_image_paths(
     img_root = config['img_root']
     height_types = config['height_types']
     height_boundaries = config['height_boundaries']
-    img_count = config['img_count']
     buildings_per_layer = config['buildings_per_layer']
     categories = config['categories']
     generic = 'generic'
     result = []
 
+    # Use a global chosen set to avoid duplicates across all layers
+    chosen_global = set()
+
     # Foreground: always 3 images, use h0
-    chosen_fg = set()
-    foreground_paths = _pick_images(region, 'h0', 3, chosen_fg, img_count, img_root, generic)
+    foreground_paths = _pick_images(region, 'h0', 3, chosen_global, img_root, generic)
     result.append(foreground_paths)
 
     # For each layer (not including foreground)
     for layer_idx in range(num_layers):
         layer_paths = []
         layer_data = user_data[layer_idx]
-        chosen = set()
         for b in range(buildings_per_layer):
             # Evenly pick user data point for each building
             idx = int(b / (buildings_per_layer - 1) * (len(layer_data) - 1))
@@ -71,7 +71,7 @@ def calculate_building_image_paths(
             if htype is None:
                 htype = height_types[-1]
             # Pick 1 image for this building
-            picked = _pick_images(region, htype, 1, chosen, img_count, img_root, generic)
+            picked = _pick_images(region, htype, 1, chosen_global, img_root, generic)
             layer_paths.append(picked[0])
         result.append(layer_paths)
     return result 
