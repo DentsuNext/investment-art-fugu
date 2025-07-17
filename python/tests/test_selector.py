@@ -6,8 +6,8 @@ def test_calculate_building_image_paths():
     # Generate random user_data: 4 layers, each with 52 floats in [0, 1]
     user_data = [[random.random() for _ in range(52)] for _ in range(4)]
     num_layers = 4
-    region = "china"
-    result = calculate_building_image_paths(user_data, num_layers, region, allow_duplicate=True, verbose=True)
+    region = "asia"
+    result = calculate_building_image_paths(user_data, num_layers, region, allow_duplicate=False, verbose=True)
     print("Result shape:", [[len(layer) for layer in result]])
 
     # Check result shape

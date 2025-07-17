@@ -1,6 +1,7 @@
 import os
 import random
 from typing import List
+from typing import Optional
 from .config import config
 
 def _pick_images_from_pool(pool, count, allow_duplicate):
@@ -39,7 +40,7 @@ def calculate_building_image_paths(
     num_layers: int,
     region: str,
     allow_duplicate: bool = False,
-    verbose: bool = False
+    verbose: Optional[bool] = None
 ) -> List[List[str]]:
     """
     返回: [前景(3张图片), layer1, ..., layerN] (len(result) == num_layers+1)
@@ -48,7 +49,7 @@ def calculate_building_image_paths(
     总是优先从region文件夹选，region用完后才会用generic。
     allow_duplicate为True时，两个池都用完后自动补充。
     verbose=True 时，打印每个建筑的 user data、htype、选中的图片路径。
-    """
+    """    
     img_root = config['img_root']
     height_types = config['height_types']
     height_boundaries = config['height_boundaries']
@@ -56,6 +57,8 @@ def calculate_building_image_paths(
     categories = config['categories']
     generic = 'generic'
     layer_results = []
+    if verbose is None:
+        verbose = config['verbose']
 
     # 为每个 htype 维护一个 pool，region/generic分开
     pools = {}
