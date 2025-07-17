@@ -18,10 +18,12 @@ if __name__ == '__main__':
     # 一步生成最终图片（选图+合成）
     generate_image(
         user_data = user_data,
-        num_layers = num_layers,  # 层数,
-        region = 'us',  # 可选: 'asia', 'us', 'china'
-        color_name = 'copper',  # 可选: 'gold', 'silver', 'copper'
-        output_path = 'output.png', # 输出图片的地址,
-        allow_duplicate =  False # 是否允许重复显示建筑
+        num_layers = num_layers,        # 层数,
+        region = 'us',                  # 可选: 'asia', 'us', 'china'
+        color_name = 'copper',          # 可选: 'gold', 'silver', 'copper'
+        output_path = 'output.png',     # 输出图片的地址
+        allow_duplicate =  False,       # 是否允许重复显示建筑
+        verbose = False,                # 是否输出详细信息
+        guides = False                  # 是否显示辅助线（边框、蓝点等）
     )
     print('测试图片已生成: output.png') 

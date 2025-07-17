@@ -9,7 +9,8 @@ def generate_image(
     color_name='gold',
     output_path='output.png',
     allow_duplicate=False,
-    verbose:Optional[bool] = None
+    verbose:bool = False,
+    guides:bool = False
 ):
     """
     一步生成最终合成图片：先选图，再合成。
@@ -33,5 +34,6 @@ def generate_image(
         building_image_paths=building_image_paths,
         color_name=color_name,
         output_path=output_path,
-        verbose=verbose
+        verbose=verbose,
+        guides=guides
     )

@@ -9,8 +9,8 @@ def generate_final_image(
     building_image_paths: List[List[str]],  # selector输出的图片路径，[前景, layer1, ..., layerN]
     color_name: str = 'gold',  # 建筑叠加色名称，可选 'gold', 'silver', 'copper'
     output_path: str = 'output.png',  # 输出图片路径
-    verbose: Optional[bool] = None,
-    guides: Optional[bool] = None
+    verbose: bool = False,
+    guides: bool = False
 ):
     """
     根据用户数据和已选图片路径生成最终图片。
@@ -30,10 +30,7 @@ def generate_final_image(
     num_layers = len(user_data)
     buildings_per_layer = config['buildings_per_layer']
     points_per_line = len(user_data[0])
-    if verbose is None:
-        verbose = config['verbose']
-    if guides is None:
-        guides = config['guides']
+
 
     # 本地资源路径
     bg_gradient_path = 'assets/bg-gradient.png'

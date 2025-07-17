@@ -40,7 +40,7 @@ def calculate_building_image_paths(
     num_layers: int,
     region: str,
     allow_duplicate: bool = False,
-    verbose: Optional[bool] = None
+    verbose: bool = False
 ) -> List[List[str]]:
     """
     返回: [前景(3张图片), layer1, ..., layerN] (len(result) == num_layers+1)
@@ -57,8 +57,6 @@ def calculate_building_image_paths(
     categories = config['categories']
     generic = 'generic'
     layer_results = []
-    if verbose is None:
-        verbose = config['verbose']
 
     # 为每个 htype 维护一个 pool，region/generic分开
     pools = {}
