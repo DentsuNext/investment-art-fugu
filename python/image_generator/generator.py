@@ -71,11 +71,13 @@ def generate_final_image(
         layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
         chosen_imgs = building_image_paths[i+1]  # i=0对应layer1, i=num_layers-1对应layerN
         line_data = user_data[i]
+        # 计算每层的水平偏移
+        bar_width = size[0] / buildings_per_layer
+        unit_offset = bar_width / num_layers
+        layer_offset = int((i+0.5) * unit_offset) # 假设有两层, 第一层建筑的中点距离bar的左边沿有0.5个unit_offset, 第二层有1.5个unit_offset. 这样能保证前一个bar的第二层和后一个bar的第一层的间隔是1个unit_offset, 实现完全等分
         for j, img_path in enumerate(chosen_imgs):
-            x0 = int(j * size[0] / buildings_per_layer)
-            x1 = int((j+1) * size[0] / buildings_per_layer)
-            w = x1 - x0
-            center_idx = int((j + 0.5) * points_per_line / buildings_per_layer)
+            x0 = int(j * size[0] / buildings_per_layer)            
+            center_idx = int((x0 + layer_offset) / size[0] * points_per_line)
             h_ratio = line_data[min(center_idx, points_per_line-1)]
             h = int(size[1] * h_ratio)
             img = Image.open(img_path).convert('RGBA')
@@ -84,7 +86,7 @@ def generate_final_image(
             new_w = int(orig_w * scale)
             new_h = int(orig_h * scale)
             img = img.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
-            paste_x = x0 + (w - new_w) // 2
+            paste_x = x0 + layer_offset - (new_w // 2) 
             paste_y = size[1] - new_h
             # 使用ColorMap方式混合
             blended = blend_building_with_gradient(img, gradient_img)
@@ -92,7 +94,7 @@ def generate_final_image(
             debug_point = None
             if guides:
                 # 中文注释: 记录每个建筑对应的折线点坐标
-                pt_x = int((j + 0.5) * size[0] / buildings_per_layer)
+                pt_x = x0 + layer_offset
                 pt_y = int(size[1] - h)
                 debug_point = (pt_x, pt_y)
                 building_points.append(debug_point)
