@@ -34,7 +34,7 @@ python/
       num_layers=3,                  # 层数
       region='china',                # 区域，可选: 'asia', 'us', 'china'
       color_name='gold',             # 金/银/铜渐变
-      output_path='output.png',      # 输出图片的路径名称
+      output_path='output.png',      # 输出图片的路径名称。单层图片会以文件名加序号的方式保存
       allow_duplicate=False,         # 是否允许图片重复
       verbose=False,                 # 是否输出详细信息
       guides=False                   # 是否显示辅助线（边框、蓝点等）
@@ -72,7 +72,9 @@ python/
     (252, 200, 85, 255),    # 第二层
     (206, 155, 82, 255),    # 第三层
     (168, 144, 110, 255)    # 第四层       
-]
+],
+# 第一层前再额外显示的建筑数量
+    "extra_building_count": 3
 ```
 若需要修改叠加的金银铜三种颜色，请至`/assets`文件夹替换相应图片
 > `gold.png`, `silver.png`, `copper.png`（横向渐变，供建筑叠加）

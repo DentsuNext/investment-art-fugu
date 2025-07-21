@@ -21,7 +21,7 @@ if __name__ == '__main__':
         num_layers = num_layers,        # 层数,
         region = 'us',                  # 可选: 'asia', 'us', 'china'
         color_name = 'copper',          # 可选: 'gold', 'silver', 'copper'
-        output_path = 'output.png',     # 输出图片的地址
+        output_path = 'output.png',     # 输出图片的地址。单层图片会以文件名加序号的方式保存
         allow_duplicate =  False,       # 是否允许重复显示建筑
         verbose = False,                # 是否输出详细信息
         guides = False                  # 是否显示辅助线（边框、蓝点等）

@@ -18,7 +18,7 @@ def generate_image(
     :param num_layers: 层数
     :param region: 区域
     :param color_name: 金/银/铜
-    :param output_path: 输出图片路径
+    :param output_path: 输出图片路径。单层图片会以文件名加序号的方式保存
     :param allow_duplicate: 是否允许图片重复
     :param verbose: 是否输出详细信息
     """

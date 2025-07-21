@@ -1,4 +1,5 @@
 import os
+import random
 from typing import List, Optional
 from PIL import Image, ImageDraw
 from .config import config
@@ -29,7 +30,8 @@ def generate_final_image(
     layer_colors = config['layer_colors']
     num_layers = len(user_data)
     buildings_per_layer = config['buildings_per_layer']
-    points_per_line = len(user_data[0])
+    points_per_line = [len(layer_data) for layer_data in user_data]
+    extra_building_count = config['extra_building_count']
 
 
     # 本地资源路径
@@ -49,7 +51,7 @@ def generate_final_image(
     backgrounds = []
     for i in range(num_layers):
         line_data = user_data[i]
-        points = [(int(x*size[0]/(points_per_line-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
+        points = [(int(x*size[0]/(points_per_line[i]-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
         poly = points + [(size[0], size[1]), (0, size[1])]
         mask = Image.new('L', size, 0)
         ImageDraw.Draw(mask).polygon(poly, fill=255)
@@ -63,7 +65,7 @@ def generate_final_image(
 
     # 2. 生成每层建筑（横向依次排开，底部对齐，等比缩放）
     buildings = []
-    building_points = []  # 存储每个建筑对应的折线点坐标
+    debug_point_list = []  # 存储每个建筑对应的折线点坐标
     # building_image_paths: [前景, layer1, ..., layerN]
     # user_data: [layer1, layer2, ..., layerN](layer1最前，layerN最后)
     # building_image_paths[1]对应user_data[0], ..., building_image_paths[num_layers]对应user_data[num_layers-1]
@@ -71,100 +73,108 @@ def generate_final_image(
         layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
         chosen_imgs = building_image_paths[i+1]  # i=0对应layer1, i=num_layers-1对应layerN
         line_data = user_data[i]
-        # 计算每层的水平偏移
-        bar_width = size[0] / buildings_per_layer
-        unit_offset = bar_width / num_layers
-        layer_offset = int((i+0.5) * unit_offset) # 假设有两层, 第一层建筑的中点距离bar的左边沿有0.5个unit_offset, 第二层有1.5个unit_offset. 这样能保证前一个bar的第二层和后一个bar的第一层的间隔是1个unit_offset, 实现完全等分
-        for j, img_path in enumerate(chosen_imgs):
-            x0 = int(j * size[0] / buildings_per_layer)            
-            center_idx = int((x0 + layer_offset) / size[0] * points_per_line)
-            h_ratio = line_data[min(center_idx, points_per_line-1)]
+
+        # 绘制常规层. 为避免完全遮挡, 每层会有一个水平偏移
+        # 偏移计算方法(与selector.py中保持一致): 假设有两层, 第一层建筑的中点距离bar的左边沿有0.5个unit_offset, 
+        # 第二层有1.5个unit_offset. 这样能保证前一个bar的第二层和后一个bar的第一层的间隔是1个unit_offset, 实现完全等分
+        unit_offset = 1 / num_layers
+        layer_offset = (i+0.5) * unit_offset
+        for j, img_path in enumerate(chosen_imgs):       
+            center_idx = int((j+layer_offset) / buildings_per_layer * (points_per_line[i] - 1))
+            x_center = int(center_idx / (points_per_line[i] - 1) * size[0])  
+            h_ratio = line_data[min(center_idx, points_per_line[i]-1)]
             h = int(size[1] * h_ratio)
-            img = Image.open(img_path).convert('RGBA')
-            orig_w, orig_h = img.size
-            scale = h / orig_h
-            new_w = int(orig_w * scale)
-            new_h = int(orig_h * scale)
-            img = img.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
-            paste_x = x0 + layer_offset - (new_w // 2) 
-            paste_y = size[1] - new_h
-            # 使用ColorMap方式混合
-            blended = blend_building_with_gradient(img, gradient_img)
-            layer.alpha_composite(blended, (paste_x, paste_y))
-            debug_point = None
-            if guides:
-                # 中文注释: 记录每个建筑对应的折线点坐标
-                pt_x = x0 + layer_offset
-                pt_y = int(size[1] - h)
-                debug_point = (pt_x, pt_y)
-                building_points.append(debug_point)
+            draw_building(layer, img_path, x_center, h, gradient_img, guides, debug_point_list)
+        
+        # 如果是最前层（layer1），同时绘制3个前景建筑
+        if i == 0 and extra_building_count > 0:
+            fg_imgs = building_image_paths[0]
+            for j, img_path in enumerate(fg_imgs):
+                x_center = int((j+0.5) / extra_building_count * size[0])
+                h_ratio = 0.2 + (random.random()-0.5) * 2 * 0.1
+                h = int(size[1] * h_ratio)
+                draw_building(layer, img_path, x_center, h, gradient_img, guides, debug_point_list)
+
         buildings.append(layer)
 
-    # 3. 折线绘制函数（抗锯齿渐变线条）
-    def draw_gradient_line(img, points, gradient_img, width=8, scale=4):
-        big_size = (img.size[0]*scale, img.size[1]*scale)
-        mask = Image.new('L', big_size, 0)
-        draw = ImageDraw.Draw(mask)
-        big_points = [(x*scale, y*scale) for x, y in points]
-        big_width = width * scale
-        draw.line(big_points, fill=255, width=big_width)
-        for pt in big_points:
-            x, y = pt
-            r = big_width // 2
-            draw.ellipse([x - r, y - r, x + r, y + r], fill=255)
-        mask = mask.resize(img.size, resample=Image.Resampling.LANCZOS)
-        grad = gradient_img.resize(img.size)
-        img.paste(grad, (0,0), mask)
-        return img
+    # 3. 生成每层折线图
+    lines = []
+    for i in range(num_layers):
+        layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
+        line_data = user_data[i]
+        points = [(int(x*size[0]/(points_per_line[i]-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
+        layer = draw_gradient_line(layer, points, line_gradient, width=line_width)
+        lines.append(layer)
 
-    # 4. 合成：白色底+assets/bg.png+每层内容
+    # 4. 输出单层的建筑图    
+    layer_output_name, layer_output_ext = os.path.splitext(output_path)
+    for i in range(num_layers):
+        layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
+        layer = Image.alpha_composite(layer, buildings[i])
+        layer = Image.alpha_composite(layer, lines[i])
+        layer_output_path = layer_output_name+str(i+1)+layer_output_ext
+        layer.save(layer_output_path)
+        if verbose:
+            print(f'单层图片已保存到 {layer_output_path}')
+
+    # 5. 合成最终海报：白色底+assets/bg.png+每层内容
     base = Image.new('RGBA', size, (255,255,255,255))
     base = Image.alpha_composite(base, overall_bg)
     # 合成时要反向叠加, user_data中前面的数据会被绘制在前排, 后面的数据会被绘制在后排
     # Draw from back to front: layerN (back) ... layer1 (front)
     for i in range(num_layers-1, -1, -1):
         base = Image.alpha_composite(base, backgrounds[i])
-        # 如果是最前层（layer1），同时绘制前景建筑
-        if i == 0:
-            # 先绘制本层建筑
-            base = Image.alpha_composite(base, buildings[i])
-            # 再绘制前景建筑（直接叠加到base上）
-            fg_imgs = building_image_paths[0]
-            fg_h = int(size[1] * 0.2)
-            fg_w = size[0] // 3
-            for j, img_path in enumerate(fg_imgs):
-                img = Image.open(img_path).convert('RGBA')
-                orig_w, orig_h = img.size
-                scale = fg_h / orig_h
-                new_w = int(orig_w * scale)
-                new_h = int(orig_h * scale)
-                img = img.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
-                paste_x = int(j * size[0] / 3 + (fg_w - new_w) // 2)
-                paste_y = size[1] - new_h                
-                blended = blend_building_with_gradient(img, gradient_img)
-                base.alpha_composite(blended, (paste_x, paste_y))
-                debug_point = None
-                if guides:
-                    pt_x = int(j * size[0] / 3 + fg_w // 2)
-                    pt_y = size[1] - fg_h
-                    debug_point = (pt_x, pt_y)  
-                    building_points.append(debug_point)
-        else:
-            base = Image.alpha_composite(base, buildings[i])
-        line_data = user_data[i]
-        points = [(int(x*size[0]/(points_per_line-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
-        base = draw_gradient_line(base, points, line_gradient, width=line_width)
+        base = Image.alpha_composite(base, buildings[i])
+        base = Image.alpha_composite(base, lines[i])
+    
     # guides控制辅助线: 在折线点上画蓝色小圆点（建筑画完后再画，避免被遮挡）
     if guides:
         draw = ImageDraw.Draw(base)
-        for pt_x, pt_y in building_points:
+        for pt_x, pt_y in debug_point_list:
             r = 5
             draw.ellipse([pt_x-r, pt_y-r, pt_x+r, pt_y+r], fill=(0,0,255,255))
 
     # 保存图片
     base.save(output_path)
     if verbose:
-        print(f'图片已保存到 {output_path}')
+        print(f'最终图片已保存到 {output_path}')
+
+
+def draw_building(layer:Image, img_path, img_center_x, img_dst_height, gradient_img, guides, debug_point_list):
+    """
+    在指定的图层上绘制单个建筑。
+
+    函数会根据目标高度等比缩放建筑图片，并将其水平居中放置在指定位置，然后应用渐变色，
+    最终将处理后的建筑合成到图层上。
+
+    :param layer: PIL.Image, 目标图层，建筑将被绘制在这上面。
+    :param img_path: str, 建筑图片的路径。
+    :param img_center_x: int, 建筑在图层上的目标水平中心点 x 坐标。
+    :param img_dst_height: int, 建筑的目标高度（会等比缩放）。
+    :param gradient_img: PIL.Image, 用于色彩映射的渐变图。
+    :param guides: bool, 是否记录调试信息（建筑的落点坐标）。
+    :param debug_point_list: list, 用于存储调试点的列表。
+     """ 
+    img = Image.open(img_path).convert('RGBA')
+    orig_w, orig_h = img.size
+    scale = img_dst_height / orig_h
+    new_w = int(orig_w * scale)
+    new_h = int(orig_h * scale)
+    img = img.resize((new_w, new_h), resample=Image.Resampling.LANCZOS)
+    paste_x = img_center_x - (new_w // 2) 
+    paste_y = layer.size[1] - img_dst_height
+    # 使用ColorMap方式混合
+    blended = blend_building_with_gradient(img, gradient_img)
+    layer.alpha_composite(blended, (paste_x, paste_y))
+    if guides:
+        # 中文注释: 记录每个建筑对应的折线点坐标
+        debug_point_list.append((img_center_x, paste_y))
+        # 中文注释: 同时画出img的边框用来debug
+        draw = ImageDraw.Draw(layer)
+        rect_coords = (paste_x, paste_y, paste_x + new_w, paste_y + new_h)
+        draw.rectangle(rect_coords, outline="red", width=1)
+
+
 
 def blend_building_with_gradient(img, gradient_img, vmin=0.0, vmax=1.0, amount=1.0):
     """
@@ -204,3 +214,33 @@ def blend_building_with_gradient(img, gradient_img, vmin=0.0, vmax=1.0, amount=1
     out = (color * 255).astype(np.uint8)
     blended = Image.fromarray(out, mode='RGBA')
     return blended
+
+# 折线绘制函数（抗锯齿渐变线条）
+def draw_gradient_line(img, points, gradient_img, width=8, scale=4):
+    """
+    在图片上绘制带抗锯齿效果的渐变折线。
+
+    该函数通过先在放大尺寸的画布上绘制线条，然后再缩小的方式来实现抗锯齿。
+    线条的颜色来自于传入的渐变图。
+
+    :param img: PIL.Image, 需要绘制线条的图片。
+    :param points: list, 折线所有顶点的坐标列表，格式为 [(x1, y1), (x2, y2), ...]。
+    :param gradient_img: PIL.Image, 作为线条颜色的渐变图。
+    :param width: int, 线条的宽度。
+    :param scale: int, 抗锯齿效果的上采样倍数，值越大效果越好但计算量越大。
+    :return: PIL.Image, 绘制了渐变线条后的图片。
+    """
+    big_size = (img.size[0]*scale, img.size[1]*scale)
+    mask = Image.new('L', big_size, 0)
+    draw = ImageDraw.Draw(mask)
+    big_points = [(x*scale, y*scale) for x, y in points]
+    big_width = width * scale
+    draw.line(big_points, fill=255, width=big_width)
+    for pt in big_points:
+        x, y = pt
+        r = big_width // 2
+        draw.ellipse([x - r, y - r, x + r, y + r], fill=255)
+    mask = mask.resize(img.size, resample=Image.Resampling.LANCZOS)
+    grad = gradient_img.resize(img.size)
+    img.paste(grad, (0,0), mask)
+    return img
