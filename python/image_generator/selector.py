@@ -3,6 +3,7 @@ import random
 from typing import List
 from typing import Optional
 from .config import config
+from .utils import getShiftedUserDataID
 
 def _pick_images_from_pool(pool, count, allow_duplicate):
     """
@@ -70,6 +71,9 @@ def calculate_building_image_paths(
             'generic': generic_files[:],
             'generic_all': generic_files[:],
         }
+
+    if verbose:
+        print(f"=========挑选: 开始=========")
     # 先挑选前景3张图片（h0），从池中移除
     foreground_paths = _pick_images_from_pool(pools['h0'], extra_building_count, allow_duplicate)
     if verbose:
@@ -82,10 +86,12 @@ def calculate_building_image_paths(
         # 计算每层的水平偏移
         # 偏移计算方法(generator.py中保持一致): 假设有两层, 第一层建筑的中点距离bar的左边沿有0.5个unit_offset, 
         # 第二层有1.5个unit_offset. 这样能保证前一个bar的第二层和后一个bar的第一层的间隔是1个unit_offset, 实现完全等分
-        unit_offset = 1 / num_layers
-        layer_offset = (layer_idx+0.5) * unit_offset
+        # unit_offset = 1 / num_layers
+        # layer_offset = (layer_idx+0.5) * unit_offset
         for b in range(buildings_per_layer):
-            idx = int((b+layer_offset) / buildings_per_layer * (len(layer_data) - 1))
+            idx = getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_idx, b)
+            idx = max(0, min(idx, len(layer_data) - 1))
+            # idx = int((b+layer_offset) / buildings_per_layer * (len(layer_data) - 1))
             val = layer_data[idx]
             htype = None
             for i, boundary in enumerate(height_boundaries):
@@ -99,5 +105,8 @@ def calculate_building_image_paths(
             if verbose:
                 print(f"[第{layer_idx+1}层] building={b}, idx = {idx}, user_data={val:.2f}, htype={htype}, path={picked[0]}")
         layer_results.append(layer_paths)
+    
+    if verbose:
+        print(f"=========挑选: 结束=========")
     # 返回顺序: [前景, layer1, ..., layerN]
     return [foreground_paths] + layer_results 

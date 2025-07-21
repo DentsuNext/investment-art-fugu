@@ -3,6 +3,7 @@ import random
 from typing import List, Optional
 from PIL import Image, ImageDraw
 from .config import config
+from .utils import getShiftedUserDataID
 
 # 生成最终图片的主函数
 def generate_final_image(
@@ -47,6 +48,8 @@ def generate_final_image(
     # 读取金银铜渐变图并resize到画布大小（路径从config获取）
     gradient_img = Image.open(overlay_colors[color_name]).convert('RGBA').resize(size)
 
+    if verbose:
+        print(f"=========绘制: 开始=========")
     # 1. 生成每层背景（折线下方区域，渐变+色块）
     backgrounds = []
     for i in range(num_layers):
@@ -75,17 +78,18 @@ def generate_final_image(
         line_data = user_data[i]
 
         # 绘制常规层. 为避免完全遮挡, 每层会有一个水平偏移
-        # 偏移计算方法(与selector.py中保持一致): 假设有两层, 第一层建筑的中点距离bar的左边沿有0.5个unit_offset, 
-        # 第二层有1.5个unit_offset. 这样能保证前一个bar的第二层和后一个bar的第一层的间隔是1个unit_offset, 实现完全等分
-        unit_offset = 1 / num_layers
-        layer_offset = (i+0.5) * unit_offset
         for j, img_path in enumerate(chosen_imgs):       
-            center_idx = int((j+layer_offset) / buildings_per_layer * (points_per_line[i] - 1))
-            x_center = int(center_idx / (points_per_line[i] - 1) * size[0])  
-            h_ratio = line_data[min(center_idx, points_per_line[i]-1)]
+            idx = getShiftedUserDataID(user_data, num_layers, buildings_per_layer, i, j)
+            x_center = int(idx / (points_per_line[i]-1) * size[0])   
+            
+            strict_idx = max(0, min(idx, points_per_line[i]-1))
+            h_ratio = line_data[strict_idx]
             h = int(size[1] * h_ratio)
-            draw_building(layer, img_path, x_center, h, gradient_img, guides, debug_point_list)
-        
+            if verbose:
+                print(f"[第{i+1}层] building={j}, idx = {idx}, x_center = {x_center}")
+
+            draw_building(layer, img_path, x_center, h, gradient_img, verbose, guides, debug_point_list)              
+
         # 如果是最前层（layer1），同时绘制3个前景建筑
         if i == 0 and extra_building_count > 0:
             fg_imgs = building_image_paths[0]
@@ -93,7 +97,7 @@ def generate_final_image(
                 x_center = int((j+0.5) / extra_building_count * size[0])
                 h_ratio = 0.2 + (random.random()-0.5) * 2 * 0.1
                 h = int(size[1] * h_ratio)
-                draw_building(layer, img_path, x_center, h, gradient_img, guides, debug_point_list)
+                draw_building(layer, img_path, x_center, h, gradient_img, verbose, guides, debug_point_list)
 
         buildings.append(layer)
 
@@ -137,10 +141,12 @@ def generate_final_image(
     # 保存图片
     base.save(output_path)
     if verbose:
+        print(f"=========绘制: 结束=========")
+    if verbose:
         print(f'最终图片已保存到 {output_path}')
 
 
-def draw_building(layer:Image, img_path, img_center_x, img_dst_height, gradient_img, guides, debug_point_list):
+def draw_building(layer:Image, img_path, img_center_x, img_dst_height, gradient_img, verbose, guides, debug_point_list):
     """
     在指定的图层上绘制单个建筑。
 
@@ -166,6 +172,10 @@ def draw_building(layer:Image, img_path, img_center_x, img_dst_height, gradient_
     # 使用ColorMap方式混合
     blended = blend_building_with_gradient(img, gradient_img)
     layer.alpha_composite(blended, (paste_x, paste_y))
+
+    if verbose:
+        print(f"left = {paste_x}, top = {paste_y}, width = {new_w}, height = {new_h}")
+
     if guides:
         # 中文注释: 记录每个建筑对应的折线点坐标
         debug_point_list.append((img_center_x, paste_y))
