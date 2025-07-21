@@ -54,6 +54,7 @@ def calculate_building_image_paths(
     img_root = config['img_root']
     height_types = config['height_types']
     height_boundaries = config['height_boundaries']
+    height_threshold = config['height_threshold']
     buildings_per_layer = config['buildings_per_layer']
     extra_building_count = config['extra_building_count']
     categories = config['categories']
@@ -91,8 +92,13 @@ def calculate_building_image_paths(
         for b in range(buildings_per_layer):
             idx = getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_idx, b)
             idx = max(0, min(idx, len(layer_data) - 1))
-            # idx = int((b+layer_offset) / buildings_per_layer * (len(layer_data) - 1))
             val = layer_data[idx]
+            if val <= height_threshold:
+                layer_paths.append("")
+                if verbose:
+                    print(f"[第{layer_idx+1}层] building={b}, idx = {idx}, user_data={val:.2f}, skip picking")
+                continue
+
             htype = None
             for i, boundary in enumerate(height_boundaries):
                 if val < boundary:

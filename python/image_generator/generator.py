@@ -78,7 +78,12 @@ def generate_final_image(
         line_data = user_data[i]
 
         # 绘制常规层. 为避免完全遮挡, 每层会有一个水平偏移
-        for j, img_path in enumerate(chosen_imgs):       
+        for j, img_path in enumerate(chosen_imgs):   
+            if img_path == "":
+                if verbose:
+                    print(f"[第{i+1}层] building={j}, skip drawing")
+                continue
+
             idx = getShiftedUserDataID(user_data, num_layers, buildings_per_layer, i, j)
             x_center = int(idx / (points_per_line[i]-1) * size[0])   
             

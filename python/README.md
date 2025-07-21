@@ -60,6 +60,8 @@ python/
 "buildings_per_layer": 13,  
 # 高度分割: 用户数据小于0.2的将选择h0文件夹内的建筑, 大于等于0.2小于0.4的选择h1内的建筑, 依次类推
 "height_boundaries": [0.2, 0.4, 0.6, 0.8],
+# 用户数据若小于这个值, 则不会为这个点绘制建筑
+"height_threshold": 0.15,
 # 建筑可以叠加的颜色（渐变图路径）
 "overlay_colors": {
     "gold": "assets/gold.png",    # 金色
