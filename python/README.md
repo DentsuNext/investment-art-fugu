@@ -52,7 +52,7 @@ python/
 # 图片库地址
 "img_root": "imgset",    
 # 每层建筑所来自的地区
-"layer_regions": ["china", "global", "overseas", "others"],
+"layer_regions": ["china", "overseas", "global", "others"],
 # 每层建筑图片所来自的文件夹名称
 "layer_folders": ["china", "global", "global", "generic"],
 # 每个地区内, 根据高度划分的子文件夹
@@ -93,7 +93,7 @@ python/
 - **图片库结构**
   - 根目录`imgset`可在 `image_generator/config.py` 修改。
   - `imgset/china/`, `imgset/global/`, `imgset/generic/`：子文件夹为所在地区的建筑图片
-  - 由于金融产品共涉及4个区域, 分别是`"china", "global", "overseas", "others"`, 每个区域对应的子文件夹请在`image_generator/config.py` 修改
+  - 由于金融产品共涉及4个区域, 分别是`"china", "overseas", "global", "others"`, 每个区域对应的子文件夹请在`image_generator/config.py` 修改
   - 每个区域下有 `h0` ~ `h4` 文件夹，分别存放不同高度的建筑
   - **图片格式必须为 `.png`**，文件名可自定义
   - 图片底部不能留有空白

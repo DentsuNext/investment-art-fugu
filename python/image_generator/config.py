@@ -5,7 +5,7 @@ config = {
     # 图片库地址
     "img_root": "imgset",    
     # 每层建筑所来自的地区
-    "layer_regions": ["china", "global", "overseas", "others"],
+    "layer_regions": ["china", "overseas", "global", "others"],
     # 每层建筑图片所来自的文件夹名称
     "layer_folders": ["china", "global", "global", "generic"],
     # 每个地区内, 根据高度划分的子文件夹

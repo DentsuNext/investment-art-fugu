@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # 生成图片
     generate_image(
         user_data=user_data,           # 二维数组，每层数据为一个数组。 即使层数据为空， 也需要传入空数组
-        color_name='gold',             # 金/银/铜渐变，可选: 'gold', 'silver', 'copper'
+        color_name='copper',             # 金/银/铜渐变，可选: 'gold', 'silver', 'copper'
         output_path='output.png',      # 输出图片的路径名称。单层图片会以文件名加序号的方式保存
         verbose=False,                 # 是否输出详细信息
         guides=False                   # 是否显示辅助线（边框、蓝点等）
