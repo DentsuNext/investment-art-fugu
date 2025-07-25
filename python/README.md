@@ -30,12 +30,9 @@ python/
   from image_generator import generate_image
   # user_data: list of lists, each sublist is one layer's data
   generate_image(
-      user_data=user_data,           # 二维数组，每层一个长度为points_per_line的数组
-      num_layers=3,                  # 层数
-      region='china',                # 区域，可选: 'asia', 'us', 'china'
-      color_name='gold',             # 金/银/铜渐变
+      user_data=user_data,           # 二维数组，每层数据为一个数组。 即使层数据为空， 也需要传入空数组
+      color_name='gold',             # 金/银/铜渐变，可选: 'gold', 'silver', 'copper'
       output_path='output.png',      # 输出图片的路径名称。单层图片会以文件名加序号的方式保存
-      allow_duplicate=False,         # 是否允许图片重复
       verbose=False,                 # 是否输出详细信息
       guides=False                   # 是否显示辅助线（边框、蓝点等）
   )
@@ -49,9 +46,17 @@ python/
 
 ## Configuration
 
-所有主要参数均在 `image_generator/config.py` 中配置，也可在调用API时临时覆盖。
+所有主要参数均在 `image_generator/config.py` 中配置。
 
 ```python
+# 图片库地址
+"img_root": "imgset",    
+# 每层建筑所来自的地区
+"layer_regions": ["china", "global", "overseas", "others"],
+# 每层建筑图片所来自的文件夹名称
+"layer_folders": ["china", "global", "global", "generic"],
+# 每个地区内, 根据高度划分的子文件夹
+"height_types": ["h0", "h1", "h2", "h3", "h4"],
 # 生成图片的分辨率
 "resolution": (956, 671),
 # 线条宽度
@@ -76,7 +81,7 @@ python/
     (168, 144, 110, 255)    # 第四层       
 ],
 # 第一层前再额外显示的建筑数量
-    "extra_building_count": 3
+"extra_building_count": 3
 ```
 若需要修改叠加的金银铜三种颜色，请至`/assets`文件夹替换相应图片
 > `gold.png`, `silver.png`, `copper.png`（横向渐变，供建筑叠加）
@@ -87,7 +92,8 @@ python/
 
 - **图片库结构**
   - 根目录`imgset`可在 `image_generator/config.py` 修改。
-  - `imgset/asia/`, `imgset/us/`, `imgset/china/`, `imgset/generic/`：区域建筑图片
+  - `imgset/china/`, `imgset/global/`, `imgset/generic/`：子文件夹为所在地区的建筑图片
+  - 由于金融产品共涉及4个区域, 分别是`"china", "global", "overseas", "others"`, 每个区域对应的子文件夹请在`image_generator/config.py` 修改
   - 每个区域下有 `h0` ~ `h4` 文件夹，分别存放不同高度的建筑
   - **图片格式必须为 `.png`**，文件名可自定义
   - 图片底部不能留有空白

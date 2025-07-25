@@ -4,6 +4,7 @@ from typing import List, Optional
 from PIL import Image, ImageDraw
 from .config import config
 from .utils import getShiftedUserDataID
+from .utils import getForegroundUserDataID
 
 # 生成最终图片的主函数
 def generate_final_image(
@@ -54,6 +55,10 @@ def generate_final_image(
     backgrounds = []
     for i in range(num_layers):
         line_data = user_data[i]
+        if not line_data:
+            # 如果该层数据为空，背景用 None 占位
+            backgrounds.append(None)
+            continue
         points = [(int(x*size[0]/(points_per_line[i]-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
         poly = points + [(size[0], size[1]), (0, size[1])]
         mask = Image.new('L', size, 0)
@@ -73,9 +78,13 @@ def generate_final_image(
     # user_data: [layer1, layer2, ..., layerN](layer1最前，layerN最后)
     # building_image_paths[1]对应user_data[0], ..., building_image_paths[num_layers]对应user_data[num_layers-1]
     for i in range(num_layers):
+        line_data = user_data[i]
+        if not line_data:
+            # 如果该层数据为空，建筑用 None 占位
+            buildings.append(None)
+            continue
         layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
         chosen_imgs = building_image_paths[i+1]  # i=0对应layer1, i=num_layers-1对应layerN
-        line_data = user_data[i]
 
         # 绘制常规层. 为避免完全遮挡, 每层会有一个水平偏移
         for j, img_path in enumerate(chosen_imgs):   
@@ -99,9 +108,18 @@ def generate_final_image(
         if i == 0 and extra_building_count > 0:
             fg_imgs = building_image_paths[0]
             for j, img_path in enumerate(fg_imgs):
-                x_center = int((j+0.5) / extra_building_count * size[0])
+                if img_path == "":
+                    if verbose:
+                        print(f"[前景层] building={j}, skip drawing")
+                    continue
+                
+                idx = getForegroundUserDataID(user_data, j, extra_building_count)
+                x_center = int(idx / (points_per_line[i]-1) * size[0])
+                # 给前景一个随机的高度
                 h_ratio = 0.2 + (random.random()-0.5) * 2 * 0.1
                 h = int(size[1] * h_ratio)
+                if verbose:
+                    print(f"[第{i+1}层] building={j}, idx = {idx}, x_center = {x_center}")
                 draw_building(layer, img_path, x_center, h, gradient_img, verbose, guides, debug_point_list)
 
         buildings.append(layer)
@@ -109,8 +127,12 @@ def generate_final_image(
     # 3. 生成每层折线图
     lines = []
     for i in range(num_layers):
-        layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
         line_data = user_data[i]
+        if not line_data:
+            # 如果该层数据为空，折线用 None 占位
+            lines.append(None)
+            continue
+        layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
         points = [(int(x*size[0]/(points_per_line[i]-1)), int(size[1] - y*size[1])) for x, y in enumerate(line_data)]
         layer = draw_gradient_line(layer, points, line_gradient, width=line_width)
         lines.append(layer)
@@ -119,8 +141,11 @@ def generate_final_image(
     layer_output_name, layer_output_ext = os.path.splitext(output_path)
     for i in range(num_layers):
         layer = Image.new('RGBA', size, (0,0,0,0))  # 全透明
-        layer = Image.alpha_composite(layer, buildings[i])
-        layer = Image.alpha_composite(layer, lines[i])
+        # 如果该层为空，输出空图
+        if buildings[i] is not None:
+            layer = Image.alpha_composite(layer, buildings[i])
+        if lines[i] is not None:
+            layer = Image.alpha_composite(layer, lines[i])
         layer_output_path = layer_output_name+str(i+1)+layer_output_ext
         layer.save(layer_output_path)
         if verbose:
@@ -132,9 +157,12 @@ def generate_final_image(
     # 合成时要反向叠加, user_data中前面的数据会被绘制在前排, 后面的数据会被绘制在后排
     # Draw from back to front: layerN (back) ... layer1 (front)
     for i in range(num_layers-1, -1, -1):
-        base = Image.alpha_composite(base, backgrounds[i])
-        base = Image.alpha_composite(base, buildings[i])
-        base = Image.alpha_composite(base, lines[i])
+        if backgrounds[i] is not None:
+            base = Image.alpha_composite(base, backgrounds[i])
+        if buildings[i] is not None:
+            base = Image.alpha_composite(base, buildings[i])
+        if lines[i] is not None:
+            base = Image.alpha_composite(base, lines[i])
     
     # guides控制辅助线: 在折线点上画蓝色小圆点（建筑画完后再画，避免被遮挡）
     if guides:

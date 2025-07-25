@@ -52,3 +52,15 @@ def getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_index
         idx = int((building_index+layer_offset) / (buildings_per_layer-1) * (points_per_line - 1))
             
     return idx
+
+def getForegroundUserDataID(user_data, building_index, buildings_per_layer):
+    if not user_data:
+        return None
+    layer_data = user_data[0]
+
+    if not layer_data:
+        return None
+    points_per_line = len(layer_data)
+
+    idx = int((building_index + 0.5) / buildings_per_layer * (points_per_line-1))
+    return idx
