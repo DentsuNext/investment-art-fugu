@@ -8,4 +8,4 @@ OP AUTHORS:
 - ops by cables user tim (https://cables.gl/user/tim)
 - Photoshop math GLSL shaders by Romain Dura (https://mouaif.wordpress.com/2009/01/05/photoshop-math-with-glsl-shaders/)
 
-cables is build on open source software and community contributions, check https://cables.gl/credits
+cables is built on open source software and community contributions, check https://cables.gl/support

@@ -23,6 +23,7 @@
 * __LayerCount__ ```Number```
 * __LayerIndex__ ```Number```
 * __LayerInterval__ ```Number```
+* __LayerOffset__ ```Number```
 * __MarginHorizontal__ ```Number```
 * __MarginVertical__ ```Number```
 * __PointCount__ ```Number```
@@ -35,3 +36,6 @@
 * __TimelineArray__ ```Array```
 * __UsingRelativeHeight__ ```Number```
 
+## Patch Functions:
+
+* StartPlayingAnimation
