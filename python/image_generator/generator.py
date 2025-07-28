@@ -34,6 +34,7 @@ def generate_final_image(
     buildings_per_layer = config['buildings_per_layer']
     points_per_line = [len(layer_data) for layer_data in user_data]
     extra_building_count = config['extra_building_count']
+    extra_building_height = config['extra_building_height']
 
 
     # 本地资源路径
@@ -116,10 +117,10 @@ def generate_final_image(
                 idx = getForegroundUserDataID(user_data, j, extra_building_count)
                 x_center = int(idx / (points_per_line[i]-1) * size[0])
                 # 给前景一个随机的高度
-                h_ratio = 0.2 + (random.random()-0.5) * 2 * 0.1
+                h_ratio = random.uniform(extra_building_height[0], extra_building_height[1]) 
                 h = int(size[1] * h_ratio)
                 if verbose:
-                    print(f"[第{i+1}层] building={j}, idx = {idx}, x_center = {x_center}")
+                    print(f"[前景层] building={j}, idx = {idx}, x_center = {x_center}")
                 draw_building(layer, img_path, x_center, h, gradient_img, verbose, guides, debug_point_list)
 
         buildings.append(layer)

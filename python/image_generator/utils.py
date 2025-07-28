@@ -8,8 +8,21 @@ def getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_index
     points_per_line = len(layer_data)
     idx = 0
 
+
     """
-    contain方法:
+    none方法:
+    将整个宽度划分为13个segment,  建筑显示在每个segment的中点. 
+    没有额外的layer offset
+    """
+    if method == "none":
+        idx = round((building_index + 0.5) / (buildings_per_layer) * (points_per_line - 1))
+
+
+    """
+    contain方法: 
+    将整个宽度划分为13个segment, 建筑显示在每个segment的中点
+    
+    offset的计算方法如下:
     1. 横向划分为13个segment
     2. 假设共有两个图层, 
     第一层建筑的中点, 依次在0.25, 1.25, 2.25...12.25个segment的位置,
@@ -22,10 +35,13 @@ def getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_index
     if method == 'contain':
         unit_offset = 1 / num_layers
         layer_offset = (layer_index+0.5) * unit_offset
-        idx = int((building_index+layer_offset) / buildings_per_layer * (points_per_line - 1))
+        idx = round((building_index+layer_offset) / buildings_per_layer * (points_per_line - 1))
 
     """
     cover方法:
+    将整个宽度划分为12个segment,  第一栋建筑中点横坐标为0, 最后一栋建筑中点横坐标为layer.width
+
+    offset的计算方法如下:
     1. 横向划分为(13-1)共12个segment. 若没有offset, 第一栋建筑中点横坐标为0, 最后一栋建筑中点横坐标为layer.width
     2. 假设共有两个图层, 
     第一层建筑的中点, 依次在-0.25, 0.75, 1.75...11.75个segment的位置,
@@ -43,14 +59,11 @@ def getShiftedUserDataID(user_data, num_layers, buildings_per_layer, layer_index
     建筑显示在画框外的情况. 因此还是选择contain更合适一些.
     """
     if method == "cover":
-        if num_layers == 1:
-            layer_offset = 0
-        else:
-            unit_offset = 1 / num_layers
-            layer_offset = (layer_index-0.5) * unit_offset
+        unit_offset = 1 / num_layers
+        layer_offset = (layer_index+0.5) * unit_offset
            
-        idx = int((building_index+layer_offset) / (buildings_per_layer-1) * (points_per_line - 1))
-            
+        idx = round((building_index - 0.5 + layer_offset) / (buildings_per_layer-1) * (points_per_line - 1))  
+    
     return idx
 
 def getForegroundUserDataID(user_data, building_index, buildings_per_layer):
@@ -62,5 +75,5 @@ def getForegroundUserDataID(user_data, building_index, buildings_per_layer):
         return None
     points_per_line = len(layer_data)
 
-    idx = int((building_index + 0.5) / buildings_per_layer * (points_per_line-1))
+    idx = round((building_index + 0.5) / buildings_per_layer * (points_per_line-1))
     return idx

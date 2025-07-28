@@ -81,7 +81,9 @@ python/
     (168, 144, 110, 255)    # 第四层       
 ],
 # 第一层前再额外显示的建筑数量
-"extra_building_count": 3
+"extra_building_count": 3,
+# 额外显示建筑的高度范围
+"extra_building_height": (0.1, 0.2),  
 ```
 若需要修改叠加的金银铜三种颜色，请至`/assets`文件夹替换相应图片
 > `gold.png`, `silver.png`, `copper.png`（横向渐变，供建筑叠加）
